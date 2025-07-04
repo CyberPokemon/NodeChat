@@ -1,4 +1,5 @@
 import customtkinter as CTk
+import socket
 
 class WelcomeDialogBox(CTk.CTkToplevel):
     def __init__(self,parent,onSubmitCallback):
@@ -15,23 +16,38 @@ class WelcomeDialogBox(CTk.CTkToplevel):
         self.label = CTk.CTkLabel(self,text="Welcome to NodeChat",font=CTk.CTkFont(size=18, weight="bold"))
         self.label.pack(pady=(30,10))
 
-        self.label2 = CTk.CTkLabel(self, text="Please enter your name:")
-        self.label2.pack(pady=(10,5))
+        self.nameLabel = CTk.CTkLabel(self, text="Please enter your name:")
+        self.nameLabel.pack(pady=(10,5))
 
         self.nameEntry = CTk.CTkEntry(self, placeholder_text="Your name")
         self.nameEntry.pack(padx=40, pady=(5, 20))
         self.nameEntry.bind("<Return>", self.submitName)
 
+        self.ipLabel = CTk.CTkLabel(self, text=f"ip : {socket.gethostbyname(socket.gethostname()) if socket.gethostbyname(socket.gethostname())!="127.0.0.1" else "NOT CONNECTED TO ANY NETWORK"}")
+        self.ipLabel.pack(pady=(10,5))
+
         self.submitButton = CTk.CTkButton(self, text="Enter Chat", command=self.submitName)
         self.submitButton.pack()
+
+        self.errorLabel = CTk.CTkLabel(self, text="", text_color="red")
+        self.errorLabel.pack(pady=(5, 0))
 
         self.grab_set()  # Focus on this window
 
     def submitName(self,event = None):
         name = self.nameEntry.get().strip()
-        if name:
-            self.onSubmit(name,"127.0.0.1")
+        ip= socket.gethostbyname(socket.gethostname())
+        if name and (ip !="127.0.0.1"):
+            self.onSubmit(name,ip)
             self.destroy()
+        elif len(name)==0:
+            self.errorLabel.configure(text="Enter your username")
+            return
+        elif ip == "127.0.0.1":
+            self.errorLabel.configure(text="You are not connected to a network!")
+            return
+
+        
     
     def onClose(self):
         self.master.destroy()
