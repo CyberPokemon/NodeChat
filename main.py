@@ -52,7 +52,53 @@ class WelcomeDialogBox(CTk.CTkToplevel):
     def onClose(self):
         self.master.destroy()
 
+class AddContactdialogBox(CTk.CTkToplevel):
+    
+    def __init__(self,parent,onSubmitCallback):
+        super().__init__(parent)
 
+        self.title("Add New Contact")
+        self.geometry("300x200")
+        self.resizable(False, False)
+        self.onSubmit = onSubmitCallback
+        self.protocol("WM_DELETE_WINDOW", self.destroy)
+    
+        CTk.set_appearance_mode("System")
+        CTk.set_default_color_theme("blue")
+
+        self.label = CTk.CTkLabel(self, text="Enter Contact Name:")
+        self.label.pack(pady=(20, 5))
+
+        self.nameEntry = CTk.CTkEntry(self, placeholder_text="Name")
+        self.nameEntry.pack(padx=20, pady=5)
+
+        self.ipLabel = CTk.CTkLabel(self, text="Enter IP Address:")
+        self.ipLabel.pack(pady=(10, 5))
+
+        self.ipEntry = CTk.CTkEntry(self, placeholder_text="e.g., 192.168.1.2")
+        self.ipEntry.pack(padx=20, pady=5)
+
+        self.errorLabel = CTk.CTkLabel(self, text="", text_color="red")
+        self.errorLabel.pack()
+
+        self.submitButton = CTk.CTkButton(self, text="Add", command=self.submit)
+        self.submitButton.pack(pady=10)
+
+        self.grab_set() 
+
+    def submit(self):
+        name = self.nameEntry.get().strip()
+        ip = self.ipEntry.get().strip()
+
+        if name and (ip !="127.0.0.1"):
+            self.onSubmit(name,ip)
+            self.destroy()
+        elif len(name)==0:
+            self.errorLabel.configure(text="Enter recipents name")
+            return
+        elif ip == "127.0.0.1" or len(ip)==0:
+            self.errorLabel.configure(text="INVALID NETWORK IP")
+            return
 
 class ChatAppUi:
 
