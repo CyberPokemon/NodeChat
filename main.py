@@ -3,6 +3,32 @@ import socket
 from datetime import datetime as dt
 import threading
 import json
+import webbrowser
+
+APP_NAME = "NodeChat"
+APP_DESCRIPTION = (
+    "NodeChat is a lightweight, peer-to-peer chat application built using Python's socket "
+    "programming and CustomTkinter for a modern, responsive graphical interface. Designed to run "
+    "on local networks (LAN), NodeChat allows users to send and receive real-time text messages "
+    "without requiring an internet connection or external servers.\n\n"
+    
+    "With NodeChat, each user operates both as a client and a server — enabling fully decentralized "
+    "communication. You can quickly discover other users on your network by their IP address, fetch their "
+    "username, and add them to your contact list. The app maintains a chat history for every contact, showing "
+    "timestamps and organized conversations in a user-friendly interface.\n\n"
+    
+    "NodeChat is ideal for classrooms, small offices, study groups, and home networks where quick, secure, and "
+    "serverless communication is desired. Whether you're collaborating on a project or just chatting with friends "
+    "on the same Wi-Fi, NodeChat ensures reliable local messaging with a clean and intuitive experience.\n\n"
+    
+    "This application is open source and aims to be a learning resource for socket programming, multithreading, "
+    "and GUI development using CustomTkinter."
+)
+
+AUTHOR_NAME = "Imon Mallik"
+GITHUB_LINK = "https://github.com/CyberPokemon/NodeChat"
+VERSION = "0.5"
+
 
 class WelcomeDialogBox(CTk.CTkToplevel):
     def __init__(self,parent,onSubmitCallback):
@@ -162,6 +188,29 @@ class AddContactdialogBox(CTk.CTkToplevel):
             self.errorLabel.configure(text="Enter correct ip to get the receiver username")
             return
 
+class AboutDialogBox(CTk.CTkToplevel):
+    def __init__(self, parent):
+        super().__init__(parent)
+        self.title("About NodeChat")
+        self.geometry("500x700")
+        self.resizable(False, False)
+        self.grab_set()
+
+        CTk.set_appearance_mode("System")
+        CTk.set_default_color_theme("blue")
+
+        CTk.CTkLabel(self, text=APP_NAME, font=CTk.CTkFont(size=18, weight="bold")).pack(pady=(20, 10))
+        CTk.CTkLabel(self, text=APP_DESCRIPTION, wraplength=350, justify="center").pack(pady=(0, 10))
+        CTk.CTkLabel(self, text=f"Author: {AUTHOR_NAME}").pack(pady=(5, 5))
+        githubLinkLabel=CTk.CTkLabel(self, text=f"GitHub: {GITHUB_LINK}", text_color="blue")
+        githubLinkLabel.pack(pady=(5, 5))
+        githubLinkLabel.bind("<Button-1>", lambda e: webbrowser.open_new(GITHUB_LINK))
+        CTk.CTkLabel(self, text=f"Version: {VERSION}").pack(pady=(10, 5))
+
+        close_btn = CTk.CTkButton(self, text="Close", command=self.destroy)
+        close_btn.pack(pady=(15, 10))
+
+
 class ChatAppUi:
 
     def __init__(self,root):
@@ -172,6 +221,10 @@ class ChatAppUi:
         self.contacts=[]
 
         self.dialog = WelcomeDialogBox(root,self.startChat)
+
+    def openAboutDialog(self):
+        AboutDialogBox(self.root)
+
 
     def refreshContactList(self):
         for widget in self.contactList.winfo_children():
@@ -345,6 +398,8 @@ class ChatAppUi:
         self.addContactBtn = CTk.CTkButton(self.sidebar, text="+ Add Contact",command=self.openAddContactDialog)
         self.addContactBtn.pack(padx=10, pady=10)
 
+        self.aboutButton = CTk.CTkButton(self.sidebar, text="About", command=self.openAboutDialog)
+        self.aboutButton.pack(padx=10, pady=(5, 10))
 
         #chat section
 
