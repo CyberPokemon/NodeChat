@@ -88,7 +88,7 @@ class AddContactdialogBox(CTk.CTkToplevel):
         super().__init__(parent)
 
         self.title("Add New Contact")
-        self.geometry("500x300")
+        self.geometry("500x350")
         self.resizable(False, False)
         self.onSubmit = onSubmitCallback
         self.protocol("WM_DELETE_WINDOW", self.destroy)
@@ -173,6 +173,21 @@ class ChatAppUi:
 
         self.dialog = WelcomeDialogBox(root,self.startChat)
 
+    def refreshContactList(self):
+        for widget in self.contactList.winfo_children():
+            widget.destroy()
+
+        
+        for contact in self.contacts:
+            contactLabel = CTk.CTkButton(self.contactList,text=f"{contact.name}\n{contact.receiverUserName}\n{contact.ipAddress}",anchor="w",command=lambda c=contact: self.loadChat(c))
+            contactLabel.pack(padx=5,pady=5,fill="x",anchor="w")
+
+    def moveContactToTop(self,contact):
+        if contact in self.contacts:
+            self.contacts.remove(contact)
+            self.contacts.insert(0,contact)
+            self.refreshContactList()
+
     def fetchUsername(self,ip):
         if not ip or ip == "127.0.0.1":
             return "error"
@@ -221,6 +236,7 @@ class ChatAppUi:
                                 contact.chatHistory.append(Message(messageText,False))
                                 if hasattr(self, "activeContact") and self.activeContact == contact:
                                     self.loadChat(contact)
+                            self.moveContactToTop(contact)
 
                         except Exception as e:
                             print("Invalid message format or error:", e)
@@ -286,6 +302,7 @@ class ChatAppUi:
 
         msg = Message(message,True)
         self.activeContact.chatHistory.append(msg)
+        self.moveContactToTop(self.activeContact)
         self.messageEntry.delete(0,"end")
 
         self.loadChat(self.activeContact) 
