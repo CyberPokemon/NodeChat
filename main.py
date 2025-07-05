@@ -1,6 +1,7 @@
 import customtkinter as CTk
 import socket
 from datetime import datetime as dt
+import threading
 
 class WelcomeDialogBox(CTk.CTkToplevel):
     def __init__(self,parent,onSubmitCallback):
@@ -24,7 +25,9 @@ class WelcomeDialogBox(CTk.CTkToplevel):
         self.nameEntry.pack(padx=40, pady=(5, 20))
         self.nameEntry.bind("<Return>", self.submitName)
 
-        self.ipLabel = CTk.CTkLabel(self, text=f"ip : {socket.gethostbyname(socket.gethostname()) if socket.gethostbyname(socket.gethostname())!="127.0.0.1" else "NOT CONNECTED TO ANY NETWORK"}")
+        self.ipAddress= self.get_my_ip()
+
+        self.ipLabel = CTk.CTkLabel(self, text=f"IP: {self.ipAddress if self.ipAddress != '127.0.0.1' else 'NOT CONNECTED TO ANY NETWORK'}")
         self.ipLabel.pack(pady=(10,5))
 
         self.submitButton = CTk.CTkButton(self, text="Enter Chat", command=self.submitName)
@@ -35,9 +38,20 @@ class WelcomeDialogBox(CTk.CTkToplevel):
 
         self.grab_set()  # Focus on this window
 
+
+    def get_my_ip(self):
+        try:
+            s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+            s.connect(("8.8.8.8", 80))
+            ip = s.getsockname()[0]
+            s.close()
+        except:
+            ip = "127.0.0.1"
+        return ip   
+
     def submitName(self,event = None):
         name = self.nameEntry.get().strip()
-        ip= socket.gethostbyname(socket.gethostname())
+        ip= self.ipAddress
         if name and (ip !="127.0.0.1"):
             self.onSubmit(name,ip)
             self.destroy()
@@ -60,9 +74,10 @@ class Message:
         self.timestamp = dt.now()
 
 class Contact:
-    def __init__(self,name, ipAddress):
+    def __init__(self,name, ipAddress, receiverUserName):
         self.name=name
         self.ipAddress= ipAddress
+        self.receiverUserName=receiverUserName
         self.chatHistory=[]
         
 
@@ -76,6 +91,8 @@ class AddContactdialogBox(CTk.CTkToplevel):
         self.resizable(False, False)
         self.onSubmit = onSubmitCallback
         self.protocol("WM_DELETE_WINDOW", self.destroy)
+        self.fetchedUsername = None
+
     
         CTk.set_appearance_mode("System")
         CTk.set_default_color_theme("blue")
@@ -92,6 +109,13 @@ class AddContactdialogBox(CTk.CTkToplevel):
         self.ipEntry = CTk.CTkEntry(self, placeholder_text="e.g., 192.168.1.2")
         self.ipEntry.pack(padx=20, pady=5)
 
+        self.fetchButton = CTk.CTkButton(self, text="Fetch Username", command=self.fetchUsername)
+        self.fetchButton.pack(pady=(5, 5))
+
+        self.fetchedUsernameLabel = CTk.CTkLabel(self, text="Fetched Username: Not fetched yet")
+        self.fetchedUsernameLabel.pack()
+
+
         self.errorLabel = CTk.CTkLabel(self, text="", text_color="red")
         self.errorLabel.pack()
 
@@ -100,18 +124,41 @@ class AddContactdialogBox(CTk.CTkToplevel):
 
         self.grab_set() 
 
+    def fetchUsername(self):
+        ip = self.ipEntry.get().strip()
+        if not ip or ip == "127.0.0.1":
+            self.fetchedUsernameLabel.configure(text="Fetched Username: Invalid IP", text_color="red")
+            return
+
+        try:
+            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+                s.settimeout(2)
+                s.connect((ip, 5000))
+                s.send("HELLO".encode())
+                username = s.recv(1024).decode()
+                self.fetchedUsername = username
+                self.fetchedUsernameLabel.configure(text=f"Fetched Username: {username}", text_color="green")
+        except:
+            self.fetchedUsername = None
+            self.fetchedUsernameLabel.configure(text="Fetched Username: Could not reach user", text_color="red")
+
+
     def submit(self):
         name = self.nameEntry.get().strip()
         ip = self.ipEntry.get().strip()
+        receiverName = self.fetchedUsername
 
-        if name and (ip !="127.0.0.1"):
-            self.onSubmit(name,ip)
+        if name and (ip !="127.0.0.1") and receiverName:
+            self.onSubmit(name,ip,receiverName)
             self.destroy()
         elif len(name)==0:
             self.errorLabel.configure(text="Enter recipents name")
             return
         elif ip == "127.0.0.1" or len(ip)==0:
             self.errorLabel.configure(text="INVALID NETWORK IP")
+            return
+        elif receiverName =="Fetched Username: Could not reach user":
+            self.errorLabel.configure(text="Enter correct ip to get the receiver username")
             return
 
 class ChatAppUi:
@@ -125,11 +172,31 @@ class ChatAppUi:
 
         self.dialog = WelcomeDialogBox(root,self.startChat)
 
+    def startServer(self):
+        def server_thread():
+            server_socket = socket.socket(socket.   AF_INET, socket.SOCK_STREAM)
+            server_socket.setsockopt(socket.    SOL_SOCKET, socket.SO_REUSEADDR, 1)
+            server_socket.bind(('', 5000))
+            server_socket.listen(5)
+            while True:
+                try:
+                    client_socket, _ = server_socket.accept()
+                    data = client_socket.recv(1024).decode()
+                    if data == "HELLO":
+                        client_socket.send(self.username.encode())
+                    client_socket.close()
+                except Exception as e:
+                    print("Server error:", e)
+
+        threading.Thread(target=server_thread, daemon=True).start()
+
+
     def startChat(self, name,ipaddress):
         self.username = name
         self.ipaddress= ipaddress
         self.root.deiconify()
         self.buildChatUi()
+        self.startServer()
     
     def loadChat(self,contact : Contact):
         self.activeContact = contact
@@ -149,17 +216,17 @@ class ChatAppUi:
         self.chatDisplay.see("end")
 
 
-    def addContactToList(self,name,ip):
+    def addContactToList(self,name,ip,receiverUserName):
 
         for contact in self.contacts:
-            if contact.name == name or contact.ipAddress==ip:
+            if contact.ipAddress==ip:
                 return  
                 #eliminating duplicate contacts
         
-        contact = Contact(name,ip)
+        contact = Contact(name,ip,receiverUserName)
         self.contacts.append(contact)
 
-        contactLabel = CTk.CTkButton(self.contactList,text=f"{name}\n{ip}", anchor="w",command=lambda: self.loadChat(contact))
+        contactLabel = CTk.CTkButton(self.contactList,text=f"{name}\n{receiverUserName}\n{ip}", anchor="w",command=lambda: self.loadChat(contact))
 
         contactLabel.pack(padx=5, pady=5, fill="x", anchor="w")
     
