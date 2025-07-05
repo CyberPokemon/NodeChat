@@ -1,5 +1,6 @@
 import customtkinter as CTk
 import socket
+from datetime import datetime as dt
 
 class WelcomeDialogBox(CTk.CTkToplevel):
     def __init__(self,parent,onSubmitCallback):
@@ -51,6 +52,12 @@ class WelcomeDialogBox(CTk.CTkToplevel):
     
     def onClose(self):
         self.master.destroy()
+
+class Message:
+    def __init__(self,messageContent: str, isSender: bool):
+        self.content = messageContent
+        self.isSender=isSender
+        self.timestamp = dt.now()
 
 class Contact:
     def __init__(self,name, ipAddress):
@@ -124,8 +131,23 @@ class ChatAppUi:
         self.root.deiconify()
         self.buildChatUi()
     
-    def loadChat(self,contact):
-        pass
+    def loadChat(self,contact : Contact):
+        self.activeContact = contact
+        self.chatDisplay.configure(state="normal")
+        self.chatDisplay.delete("1.0","end")
+
+
+        for m in contact.chatHistory:
+            timestr= m.timestamp.strftime("%H:%M")
+            formatted_msg = f"{m.content}  [{timestr}]\n"
+
+            if m.isSender:
+                self.chatDisplay.insert("end", formatted_msg, "right")
+            else:
+                self.chatDisplay.insert("end", formatted_msg, "left")
+        self.chatDisplay.configure(state="disabled")
+        self.chatDisplay.see("end")
+
 
     def addContactToList(self,name,ip):
 
@@ -144,6 +166,22 @@ class ChatAppUi:
     def openAddContactDialog(self):
         AddContactdialogBox(self.root, self.addContactToList)
 
+
+    def sendMessage(self):
+        message = self.messageEntry.get().strip()
+
+        if not message:
+            return
+        
+        if not hasattr(self, "activeContact") or self.activeContact is None:
+            return
+
+
+        msg = Message(message,True)
+        self.activeContact.chatHistory.append(msg)
+        self.messageEntry.delete(0,"end")
+
+        self.loadChat(self.activeContact) 
     
     def buildChatUi(self):
         self.root.title("NodeChat")
@@ -182,6 +220,9 @@ class ChatAppUi:
         self.chatDisplay = CTk.CTkTextbox(self.chatPanel, state="disabled", wrap="word")
         self.chatDisplay.pack(padx=10, pady=10, fill="both", expand=True)
 
+        # self.chatDisplay.tag_configure("left", justify="left")
+        # self.chatDisplay.tag_configure("right", justify="right")
+
         # Bottom bar
         self.bottomBar = CTk.CTkFrame(self.chatPanel)
         self.bottomBar.pack(fill="x", padx=10, pady=(0, 10))
@@ -189,7 +230,8 @@ class ChatAppUi:
         self.messageEntry = CTk.CTkEntry(self.bottomBar, placeholder_text="Type your message...", width=200)
         self.messageEntry.pack(side="left", fill="x", expand=True, padx=(0, 10))
 
-        self.sendButton = CTk.CTkButton(self.bottomBar, text="Send")
+        self.sendButton = CTk.CTkButton(self.bottomBar, text="Send", command=self.sendMessage)
+        self.messageEntry.bind("<Return>", lambda event: self.sendMessage()) # snad using pressing return key
         self.sendButton.pack(side="right")
 
 
