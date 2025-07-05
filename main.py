@@ -173,6 +173,21 @@ class ChatAppUi:
 
         self.dialog = WelcomeDialogBox(root,self.startChat)
 
+    def fetchUsername(self,ip):
+        if not ip or ip == "127.0.0.1":
+            return "error"
+        else:
+            try:
+                with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+                    s.settimeout(2)
+                    s.connect((ip, 5000))
+                    s.send("HELLO".encode())
+                    username = s.recv(1024).decode()
+                    return username
+            except:
+                return ""
+
+
     def startServer(self):
         def server_thread():
             server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -198,7 +213,15 @@ class ChatAppUi:
                                 if hasattr(self, "activeContact") and self.activeContact == contact:
                                     self.loadChat(contact)
                             else:
-                                print("Unknown contact from IP:", senderIP)
+                                # print("Unknown contact from IP:", senderIP)
+                                username = self.fetchUsername(senderIP)
+                                # newcontact= Contact(username,senderIP,username)
+                                self.addContactToList(username,senderIP,username)
+                                contact = next((c for c in self.contacts if c.ipAddress == senderIP),None)
+                                contact.chatHistory.append(Message(messageText,False))
+                                if hasattr(self, "activeContact") and self.activeContact == contact:
+                                    self.loadChat(contact)
+
                         except Exception as e:
                             print("Invalid message format or error:", e)
                     client_socket.close()
