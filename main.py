@@ -142,9 +142,9 @@ class ChatAppUi:
             formatted_msg = f"{m.content}  [{timestr}]\n"
 
             if m.isSender:
-                self.chatDisplay.insert("end", formatted_msg, "right")
+                self.chatDisplay.insert("end", "[You] "+formatted_msg, "right")
             else:
-                self.chatDisplay.insert("end", formatted_msg, "left")
+                self.chatDisplay.insert("end", "["+self.activeContact.name+"] "+formatted_msg, "left")
         self.chatDisplay.configure(state="disabled")
         self.chatDisplay.see("end")
 
