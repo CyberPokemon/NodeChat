@@ -2,6 +2,7 @@ import customtkinter as CTk
 import socket
 from datetime import datetime as dt
 import threading
+import json
 
 class WelcomeDialogBox(CTk.CTkToplevel):
     def __init__(self,parent,onSubmitCallback):
@@ -174,16 +175,32 @@ class ChatAppUi:
 
     def startServer(self):
         def server_thread():
-            server_socket = socket.socket(socket.   AF_INET, socket.SOCK_STREAM)
-            server_socket.setsockopt(socket.    SOL_SOCKET, socket.SO_REUSEADDR, 1)
+            server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
             server_socket.bind(('', 5000))
             server_socket.listen(5)
             while True:
                 try:
-                    client_socket, _ = server_socket.accept()
+                    client_socket, addr = server_socket.accept()
                     data = client_socket.recv(1024).decode()
                     if data == "HELLO":
                         client_socket.send(self.username.encode())
+                    else:
+                        try:
+                            messageData = json.loads(data)
+                            senderIP=addr[0]
+                            messageText = messageData.get("message")
+                        
+
+                            contact = next((c for c in self.contacts if c.ipAddress == senderIP),None)
+                            if contact:
+                                contact.chatHistory.append(Message(messageText,False))
+                                if hasattr(self, "activeContact") and self.activeContact == contact:
+                                    self.loadChat(contact)
+                            else:
+                                print("Unknown contact from IP:", senderIP)
+                        except Exception as e:
+                            print("Invalid message format or error:", e)
                     client_socket.close()
                 except Exception as e:
                     print("Server error:", e)
@@ -249,6 +266,15 @@ class ChatAppUi:
         self.messageEntry.delete(0,"end")
 
         self.loadChat(self.activeContact) 
+
+        try:
+            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+                s.connect((self.activeContact.ipAddress,5000))
+                data = json.dumps({"message":message})
+                s.send(data.encode())
+        except Exception as e:
+            print("Failed to send message:", e)
+
     
     def buildChatUi(self):
         self.root.title("NodeChat")
@@ -298,7 +324,7 @@ class ChatAppUi:
         self.messageEntry.pack(side="left", fill="x", expand=True, padx=(0, 10))
 
         self.sendButton = CTk.CTkButton(self.bottomBar, text="Send", command=self.sendMessage)
-        self.messageEntry.bind("<Return>", lambda event: self.sendMessage()) # snad using pressing return key
+        self.messageEntry.bind("<Return>", lambda event: self.sendMessage()) # send using pressing return key
         self.sendButton.pack(side="right")
 
 
