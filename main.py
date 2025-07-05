@@ -65,7 +65,7 @@ class AddContactdialogBox(CTk.CTkToplevel):
         super().__init__(parent)
 
         self.title("Add New Contact")
-        self.geometry("300x200")
+        self.geometry("500x300")
         self.resizable(False, False)
         self.onSubmit = onSubmitCallback
         self.protocol("WM_DELETE_WINDOW", self.destroy)
@@ -114,6 +114,7 @@ class ChatAppUi:
         self.root.withdraw()
         self.username = None
         self.ipaddress= None
+        self.contacts=[]
 
         self.dialog = WelcomeDialogBox(root,self.startChat)
 
@@ -122,6 +123,28 @@ class ChatAppUi:
         self.ipaddress= ipaddress
         self.root.deiconify()
         self.buildChatUi()
+    
+    def loadChat(self,contact):
+        pass
+
+    def addContactToList(self,name,ip):
+
+        for contact in self.contacts:
+            if contact.name == name or contact.ipAddress==ip:
+                return  
+                #eliminating duplicate contacts
+        
+        contact = Contact(name,ip)
+        self.contacts.append(contact)
+
+        contactLabel = CTk.CTkButton(self.contactList,text=f"{name}\n{ip}", anchor="w",command=lambda: self.loadChat(contact))
+
+        contactLabel.pack(padx=5, pady=5, fill="x", anchor="w")
+    
+    def openAddContactDialog(self):
+        AddContactdialogBox(self.root, self.addContactToList)
+
+    
     def buildChatUi(self):
         self.root.title("NodeChat")
         self.root.geometry("800x600")
@@ -147,7 +170,7 @@ class ChatAppUi:
         self.contactList = CTk.CTkScrollableFrame(self.sidebar, width=180, height=100)
         self.contactList.pack(padx=10, pady=(0,5), fill="both", expand=True)
 
-        self.addContactBtn = CTk.CTkButton(self.sidebar, text="+ Add Contact")
+        self.addContactBtn = CTk.CTkButton(self.sidebar, text="+ Add Contact",command=self.openAddContactDialog)
         self.addContactBtn.pack(padx=10, pady=10)
 
 
