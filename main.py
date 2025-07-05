@@ -52,6 +52,13 @@ class WelcomeDialogBox(CTk.CTkToplevel):
     def onClose(self):
         self.master.destroy()
 
+class Contact:
+    def __init__(self,name, ipAddress):
+        self.name=name
+        self.ipAddress= ipAddress
+        self.chatHistory=[]
+        
+
 class AddContactdialogBox(CTk.CTkToplevel):
     
     def __init__(self,parent,onSubmitCallback):
