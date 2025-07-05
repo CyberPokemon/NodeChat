@@ -256,6 +256,7 @@ class ChatAppUi:
     
     def loadChat(self,contact : Contact):
         self.activeContact = contact
+        self.activeChatLabel.configure(text=f"Chatting with: {contact.name} ({contact.receiverUserName})")
         self.chatDisplay.configure(state="normal")
         self.chatDisplay.delete("1.0","end")
 
@@ -349,6 +350,9 @@ class ChatAppUi:
 
         self.chatPanel = CTk.CTkFrame(self.mainframe)
         self.chatPanel.pack(side="right", fill="both", expand=True, padx=(5, 10), pady=10)
+
+        self.activeChatLabel = CTk.CTkLabel(self.chatPanel, text="No contact selected", font=CTk.CTkFont(size=16, weight="bold"))
+        self.activeChatLabel.pack(padx=10, pady=(10, 0))
 
         self.chatDisplay = CTk.CTkTextbox(self.chatPanel, state="disabled", wrap="word")
         self.chatDisplay.pack(padx=10, pady=10, fill="both", expand=True)
