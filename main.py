@@ -27,9 +27,13 @@ APP_DESCRIPTION = (
 
 AUTHOR_NAME = "Imon Mallik"
 GITHUB_LINK = "https://github.com/CyberPokemon/NodeChat"
-VERSION = "0.5"
+VERSION = "0.6"
 
-BUFFER_SIZE = 1024
+BUFFER_SIZE = 20480
+
+PORT = 5000
+
+MAX_CONNECTIONS = 5
 
 class WelcomeDialogBox(CTk.CTkToplevel):
     def __init__(self,parent,onSubmitCallback):
@@ -161,7 +165,7 @@ class AddContactdialogBox(CTk.CTkToplevel):
         try:
             with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
                 s.settimeout(2)
-                s.connect((ip, 5000))
+                s.connect((ip, PORT))
                 s.send("HELLO".encode())
                 username = s.recv(BUFFER_SIZE).decode()
                 self.fetchedUsername = username
@@ -252,7 +256,7 @@ class ChatAppUi:
             try:
                 with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
                     s.settimeout(2)
-                    s.connect((ip, 5000))
+                    s.connect((ip, PORT))
                     s.send("HELLO".encode())
                     username = s.recv(BUFFER_SIZE).decode()
                     return username
@@ -264,8 +268,8 @@ class ChatAppUi:
         def server_thread():
             server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-            server_socket.bind(('', 5000))
-            server_socket.listen(5)
+            server_socket.bind(('', PORT))
+            server_socket.listen(MAX_CONNECTIONS)
             while True:
                 try:
                     client_socket, addr = server_socket.accept()
@@ -371,7 +375,7 @@ class ChatAppUi:
 
         try:
             with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-                s.connect((self.activeContact.ipAddress,5000))
+                s.connect((self.activeContact.ipAddress,PORT))
                 data = json.dumps({"message":message})
                 s.send(data.encode())
         except Exception as e:
