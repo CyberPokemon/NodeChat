@@ -29,6 +29,7 @@ AUTHOR_NAME = "Imon Mallik"
 GITHUB_LINK = "https://github.com/CyberPokemon/NodeChat"
 VERSION = "0.5"
 
+BUFFER_SIZE = 1024
 
 class WelcomeDialogBox(CTk.CTkToplevel):
     def __init__(self,parent,onSubmitCallback):
@@ -162,7 +163,7 @@ class AddContactdialogBox(CTk.CTkToplevel):
                 s.settimeout(2)
                 s.connect((ip, 5000))
                 s.send("HELLO".encode())
-                username = s.recv(1024).decode()
+                username = s.recv(BUFFER_SIZE).decode()
                 self.fetchedUsername = username
                 self.fetchedUsernameLabel.configure(text=f"Fetched Username: {username}", text_color="green")
         except:
@@ -250,7 +251,7 @@ class ChatAppUi:
                     s.settimeout(2)
                     s.connect((ip, 5000))
                     s.send("HELLO".encode())
-                    username = s.recv(1024).decode()
+                    username = s.recv(BUFFER_SIZE).decode()
                     return username
             except:
                 return ""
@@ -265,7 +266,7 @@ class ChatAppUi:
             while True:
                 try:
                     client_socket, addr = server_socket.accept()
-                    data = client_socket.recv(1024).decode()
+                    data = client_socket.recv(BUFFER_SIZE).decode()
                     if data == "HELLO":
                         client_socket.send(self.username.encode())
                     else:
