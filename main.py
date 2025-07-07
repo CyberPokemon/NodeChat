@@ -223,6 +223,8 @@ class ChatAppUi:
 
         self.dialog = WelcomeDialogBox(root,self.startChat)
 
+        self.contactsLock =  threading.Lock()
+
     def openAboutDialog(self):
         AboutDialogBox(self.root)
 
@@ -237,9 +239,10 @@ class ChatAppUi:
             contactLabel.pack(padx=5,pady=5,fill="x",anchor="w")
 
     def moveContactToTop(self,contact):
-        if contact in self.contacts:
-            self.contacts.remove(contact)
-            self.contacts.insert(0,contact)
+        with self.contactsLock:
+            if contact in self.contacts:
+                self.contacts.remove(contact)
+                self.contacts.insert(0,contact)
             self.refreshContactList()
 
     def fetchUsername(self,ip):
@@ -275,22 +278,25 @@ class ChatAppUi:
                             senderIP=addr[0]
                             messageText = messageData.get("message")
                         
-
-                            contact = next((c for c in self.contacts if c.ipAddress == senderIP),None)
-                            if contact:
-                                contact.chatHistory.append(Message(messageText,False))
-                                if hasattr(self, "activeContact") and self.activeContact == contact:
-                                    self.loadChat(contact)
-                            else:
-                                # print("Unknown contact from IP:", senderIP)
-                                username = self.fetchUsername(senderIP)
-                                # newcontact= Contact(username,senderIP,username)
-                                self.addContactToList(username,senderIP,username)
+                            with self.contactsLock:
                                 contact = next((c for c in self.contacts if c.ipAddress == senderIP),None)
-                                contact.chatHistory.append(Message(messageText,False))
-                                if hasattr(self, "activeContact") and self.activeContact == contact:
-                                    self.loadChat(contact)
-                            self.moveContactToTop(contact)
+                                if contact:
+                                    contact.chatHistory.append(Message(messageText,False))
+                                    if hasattr(self, "activeContact") and self.activeContact == contact:
+                                        # self.loadChat(contact)
+                                        self.root.after(0, lambda: self.loadChat(contact))
+
+                                else:
+                                    # print("Unknown contact from IP:", senderIP)
+                                    username = self.fetchUsername(senderIP)
+                                    # newcontact= Contact(username,senderIP,username)
+                                    self.addContactToList(username,senderIP,username)
+                                    contact = next((c for c in self.contacts if c.ipAddress == senderIP),None)
+                                    contact.chatHistory.append(Message(messageText,False))
+                                    if hasattr(self, "activeContact") and self.activeContact == contact:
+                                        self.loadChat(contact)
+                            
+                                self.moveContactToTop(contact)
 
                         except Exception as e:
                             print("Invalid message format or error:", e)
@@ -329,13 +335,14 @@ class ChatAppUi:
 
     def addContactToList(self,name,ip,receiverUserName):
 
-        for contact in self.contacts:
-            if contact.ipAddress==ip:
-                return  
-                #eliminating duplicate contacts
+        with self.contactsLock:
+            for contact in self.contacts:
+                if contact.ipAddress==ip:
+                    return  
+                    #eliminating duplicate contacts
         
-        contact = Contact(name,ip,receiverUserName)
-        self.contacts.append(contact)
+            contact = Contact(name,ip,receiverUserName)
+            self.contacts.append(contact)
 
         contactLabel = CTk.CTkButton(self.contactList,text=f"{name}\n{receiverUserName}\n{ip}", anchor="w",command=lambda: self.loadChat(contact))
 
