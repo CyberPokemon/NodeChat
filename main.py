@@ -29,7 +29,7 @@ AUTHOR_NAME = "Imon Mallik"
 GITHUB_LINK = "https://github.com/CyberPokemon/NodeChat"
 VERSION = "0.6"
 
-BUFFER_SIZE = 20480
+BUFFER_SIZE = 1024
 
 PORT = 5000
 
@@ -227,7 +227,7 @@ class ChatAppUi:
 
         self.dialog = WelcomeDialogBox(root,self.startChat)
 
-        self.contactsLock =  threading.Lock()
+        self.contactsLock =  threading.RLock()
 
     def openAboutDialog(self):
         AboutDialogBox(self.root)
