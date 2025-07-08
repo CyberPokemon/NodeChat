@@ -68,7 +68,7 @@ class WelcomeDialogBox(CTk.CTkToplevel):
         self.errorLabel = CTk.CTkLabel(self, text="", text_color="red")
         self.errorLabel.pack(pady=(5, 0))
 
-        self.grab_set()  # Focus on this window
+        self.after(100, self.grab_set)  # Focus on this window
 
 
     def get_my_ip(self):
@@ -154,7 +154,7 @@ class AddContactdialogBox(CTk.CTkToplevel):
         self.submitButton = CTk.CTkButton(self, text="Add", command=self.submit)
         self.submitButton.pack(pady=10)
 
-        self.grab_set() 
+        self.after(100, self.grab_set)
 
     def fetchUsername(self):
         ip = self.ipEntry.get().strip()
@@ -214,7 +214,7 @@ class AboutDialogBox(CTk.CTkToplevel):
         close_btn = CTk.CTkButton(self, text="Close", command=self.destroy)
         close_btn.pack(pady=(15, 10))
 
-        self.grab_set()
+        self.after(100, self.grab_set)
 
 class ChatAppUi:
 
@@ -423,9 +423,6 @@ class ChatAppUi:
 
         self.chatDisplay = CTk.CTkTextbox(self.chatPanel, state="disabled", wrap="word")
         self.chatDisplay.pack(padx=10, pady=10, fill="both", expand=True)
-
-        # self.chatDisplay.tag_configure("left", justify="left")
-        # self.chatDisplay.tag_configure("right", justify="right")
 
         # Bottom bar
         self.bottomBar = CTk.CTkFrame(self.chatPanel)
