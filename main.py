@@ -29,11 +29,11 @@ AUTHOR_NAME = "Imon Mallik"
 GITHUB_LINK = "https://github.com/CyberPokemon/NodeChat"
 VERSION = "0.7"
 
-BUFFER_SIZE = 1024
+BUFFER_SIZE = 4096
 
 PORT = 5000
 
-MAX_CONNECTIONS = 5
+MAX_CONNECTIONS = 15
 
 class WelcomeDialogBox(CTk.CTkToplevel):
     def __init__(self,parent,onSubmitCallback):
