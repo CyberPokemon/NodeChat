@@ -27,7 +27,7 @@ APP_DESCRIPTION = (
 
 AUTHOR_NAME = "Imon Mallik"
 GITHUB_LINK = "https://github.com/CyberPokemon/NodeChat"
-VERSION = "0.7"
+VERSION = "0.8 (BETA)"
 
 BUFFER_SIZE = 4096
 
