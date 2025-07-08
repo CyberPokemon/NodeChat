@@ -27,7 +27,7 @@ APP_DESCRIPTION = (
 
 AUTHOR_NAME = "Imon Mallik"
 GITHUB_LINK = "https://github.com/CyberPokemon/NodeChat"
-VERSION = "0.6"
+VERSION = "0.7"
 
 BUFFER_SIZE = 1024
 
@@ -199,7 +199,6 @@ class AboutDialogBox(CTk.CTkToplevel):
         self.title("About NodeChat")
         self.geometry("500x700")
         self.resizable(False, False)
-        self.grab_set()
 
         CTk.set_appearance_mode("System")
         CTk.set_default_color_theme("blue")
@@ -215,6 +214,7 @@ class AboutDialogBox(CTk.CTkToplevel):
         close_btn = CTk.CTkButton(self, text="Close", command=self.destroy)
         close_btn.pack(pady=(15, 10))
 
+        self.grab_set()
 
 class ChatAppUi:
 
