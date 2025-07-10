@@ -18,3 +18,74 @@ Unlike traditional chat applications, NodeChat operates entirely on your **local
 - 🔒 No data leaves your local network
 
 ---
+
+
+## 📦 Installation
+
+> Requires Python 3.9 or later
+
+1. **Clone the repository**:
+
+```bash
+git clone https://github.com/CyberPokemon/NodeChat.git
+cd NodeChat
+```
+
+2. **Create a virtual environment** (optional but recommended):
+
+```bash
+python3 -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+```
+
+3. **Install dependencies**:
+
+```bash
+pip install -r requirements.txt
+```
+
+4. **Run the app**:
+
+```bash
+python3 main.py
+```
+
+---
+
+## 🔧 Dependencies
+
+- [`customtkinter`](https://github.com/TomSchimansky/CustomTkinter)
+- Standard libraries: `socket`, `threading`, `datetime`, `json`, etc.
+
+All dependencies are listed in `requirements.txt`.
+
+---
+
+## 🛠 Usage Tips
+
+- All devices must be on the **same local network** (Wi-Fi or Ethernet).
+- Use the **About section** to view app info.
+- Supports **multithreading** — UI stays responsive even during messaging.
+
+---
+
+## 💡 Future Improvements
+
+- ✅ File sharing support (images, files)
+- ✅ Emoji support
+- 🔒 Encrypted messaging (SSL/TLS)
+- 🌐 Cross-network discovery (via relays or bridging)
+- 📱 Mobile/Tablet UI support
+
+---
+
+## 🧑‍💻 Contribution
+
+Want to contribute? PRs are welcome! Open an issue or fork the repo.
+
+---
+
+## 📄 License
+
+MIT License © 2025 Imon Mallik
+---
